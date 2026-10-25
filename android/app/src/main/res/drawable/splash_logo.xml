@@ -1,0 +1,91 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="192dp" android:height="192dp"
+    android:viewportWidth="192" android:viewportHeight="192">
+    <!-- Original ribbon geometry, rebuilt as paths. The outer padding keeps
+         the complete tile inside the system splash's circular safe area. -->
+    <group android:name="mark" android:pivotX="96" android:pivotY="96">
+        <group android:translateX="9" android:translateY="9"
+            android:scaleX="0.139" android:scaleY="0.139">
+            <path android:name="tile"
+                android:pathData="M390,112 H849 C1039,112 1134,211 1134,390 V867 C1134,1051 1049,1146 852,1146 H391 C203,1146 110,1044 110,860 V395 C110,212 203,112 390,112 Z">
+                <aapt:attr name="android:fillColor">
+                    <gradient android:type="linear" android:startX="145" android:startY="125"
+                        android:endX="1040" android:endY="1110">
+                        <item android:offset="0" android:color="#123F79" />
+                        <item android:offset="0.4" android:color="#08162F" />
+                        <item android:offset="1" android:color="#030C1D" />
+                    </gradient>
+                </aapt:attr>
+            </path>
+            <group android:name="blue_ribbon">
+                <path android:name="blue_face"
+                    android:pathData="M808,546 C849,514 882,481 912,488 C937,491 949,515 949,548 V740 C949,796 936,826 891,856 L659,968 L758,875 C796,844 808,809 808,756 Z">
+                    <aapt:attr name="android:fillColor">
+                        <gradient android:type="linear" android:startX="805" android:startY="500"
+                            android:endX="955" android:endY="850">
+                            <item android:offset="0" android:color="#0644BC" />
+                            <item android:offset="0.5" android:color="#0077F5" />
+                            <item android:offset="1" android:color="#00BCF5" />
+                        </gradient>
+                    </aapt:attr>
+                </path>
+                <path android:name="blue_fold"
+                    android:pathData="M641,477 L780,383 C815,359 849,361 879,373 C920,389 950,431 950,488 V546 C950,514 934,491 913,488 C880,479 843,513 807,544 C781,564 762,552 740,537 Z">
+                    <aapt:attr name="android:fillColor">
+                        <gradient android:type="linear" android:startX="700" android:startY="410"
+                            android:endX="955" android:endY="500">
+                            <item android:offset="0" android:color="#00C4F8" />
+                            <item android:offset="0.5" android:color="#00A3FC" />
+                            <item android:offset="1" android:color="#0083F2" />
+                        </gradient>
+                    </aapt:attr>
+                </path>
+            </group>
+            <group android:name="white_ribbon">
+                <path android:name="white_face"
+                    android:pathData="M301,486 C301,452 321,435 355,435 C383,435 410,456 433,478 V901 Q433,912 423,909 C345,888 301,840 301,779 Z">
+                    <aapt:attr name="android:fillColor">
+                        <gradient android:type="linear" android:startX="318" android:startY="467"
+                            android:endX="435" android:endY="890">
+                            <item android:offset="0" android:color="#6685BD" />
+                            <item android:offset="0.32" android:color="#ACBFE4" />
+                            <item android:offset="1" android:color="#EAF0FF" />
+                        </gradient>
+                    </aapt:attr>
+                </path>
+                <path android:name="white_fold"
+                    android:pathData="M301,498 V474 C301,421 329,372 379,347 C416,328 449,334 487,355 C530,380 574,421 627,460 L739,540 C765,559 784,552 809,541 L727,604 C688,635 657,635 621,616 L413,472 C375,444 341,454 320,476 C307,489 302,501 301,514 Z">
+                    <aapt:attr name="android:fillColor">
+                        <gradient android:type="linear" android:startX="395" android:startY="346"
+                            android:endX="710" android:endY="637">
+                            <item android:offset="0" android:color="#FCFCFF" />
+                            <item android:offset="0.6" android:color="#EDF1FF" />
+                            <item android:offset="1" android:color="#CDD9F4" />
+                        </gradient>
+                    </aapt:attr>
+                </path>
+            </group>
+            <group android:name="download_arrow">
+                <path android:name="arrow" android:fillColor="#F6F8FF"
+                    android:pathData="M603,658 H643 Q654,658 654,670 V726 H688 Q704,726 696,738 L632,802 Q623,814 614,804 L550,739 Q542,728 553,726 H592 V670 Q592,658 603,658 Z" />
+            </group>
+            <path android:name="tray" android:fillColor="@android:color/transparent"
+                android:strokeColor="#F0F4FF" android:strokeWidth="28"
+                android:strokeLineCap="round" android:strokeLineJoin="round"
+                android:pathData="M515,802 V837 Q515,854 533,854 H712 Q731,854 731,835 V802" />
+            <path android:name="outline" android:fillColor="@android:color/transparent"
+                android:strokeWidth="2.5" android:strokeAlpha="0.45"
+                android:pathData="M849,112 H390 C203,112 110,212 110,395 V860 C110,1044 203,1146 391,1146 H852 C1049,1146 1134,1051 1134,867 V390 C1134,211 1039,112 849,112 Z">
+                <aapt:attr name="android:strokeColor">
+                    <gradient android:type="linear" android:startX="180" android:startY="120"
+                        android:endX="1060" android:endY="1120">
+                        <item android:offset="0" android:color="#64B7FF" />
+                        <item android:offset="0.45" android:color="#183B75" />
+                        <item android:offset="1" android:color="#0C2348" />
+                    </gradient>
+                </aapt:attr>
+            </path>
+        </group>
+    </group>
+</vector>

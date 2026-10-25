@@ -1,0 +1,14 @@
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/splash_logo">
+    <target android:name="mark" android:animation="@animator/splash_logo_enter" />
+    <target android:name="blue_ribbon" android:animation="@animator/splash_ribbon_blue" />
+    <target android:name="white_ribbon" android:animation="@animator/splash_ribbon_white" />
+    <target android:name="blue_face" android:animation="@animator/splash_logo_reveal" />
+    <target android:name="blue_fold" android:animation="@animator/splash_logo_reveal" />
+    <target android:name="white_face" android:animation="@animator/splash_logo_reveal" />
+    <target android:name="white_fold" android:animation="@animator/splash_logo_reveal" />
+    <target android:name="download_arrow" android:animation="@animator/splash_arrow_drop" />
+    <target android:name="arrow" android:animation="@animator/splash_arrow_reveal" />
+    <target android:name="tray" android:animation="@animator/splash_tray_draw" />
+    <target android:name="outline" android:animation="@animator/splash_logo_fade" />
+</animated-vector>
