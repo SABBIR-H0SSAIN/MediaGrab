@@ -1,0 +1,33 @@
+# MediaGrab — AI Agent Cursor & IDE Rules
+
+You are an expert Flutter/Dart developer working on **MediaGrab**, an Android media downloader app built with Flutter 3, Material 3 / Material You, Clean Architecture, and Riverpod 2.x.
+
+## Critical Invariants & Rules
+
+1. **NO RAW `file://` URIs**:
+   - Never use `url_launcher` with `file://` URIs (e.g. `launchUrl(Uri.file(...))`). Android 7+ throws `FileUriExposedException`.
+   - ALWAYS use `openMediaFile(filePath)` from `lib/core/utils/file_utils.dart` (backed by `open_filex` and Android FileProvider).
+
+2. **ANDROID 14+ FOREGROUND SERVICE DECLARATION**:
+   - `AndroidManifest.xml` MUST have `androidx.work.impl.foreground.SystemForegroundService` with `android:foregroundServiceType="dataSync"`.
+   - Do NOT remove or alter this tag. Android 14+ kills foreground sync services without it.
+
+3. **FFMPEG DEPENDENCY**:
+   - Always use `ffmpeg_kit_flutter_new_min: ^3.6.7` (hosted by `com.antonkarpenko`). The original `com.arthenica` packages are dead on Maven Central.
+   - For `.mp4` muxing: use `-c:v copy -c:a aac -af aresample=async=1 -avoid_negative_ts make_zero -shortest`.
+   - For `.webm` muxing: never use AAC; use `copy` or `libopus`.
+
+4. **YOUTUBE EXTRACTION RESILIENCY**:
+   - YouTube watch-page scraping often returns false-positive `VideoUnavailableException` ("video is private or does not exist") on public videos and Shorts.
+   - `youtube_extractor.dart` must ALWAYS retain the oEmbed metadata fallback (`https://www.youtube.com/oembed`) and multi-client manifest fallback (`androidSdkless`, `ios`, `tv`).
+
+5. **MATERIAL 3 / AMOLED THEME**:
+   - Query `Theme.of(context).colorScheme.*` for all UI colors (`surfaceContainerLowest` through `surfaceContainerHighest`, `primaryContainer`, etc.).
+   - Never hardcode static hex values for backgrounds or cards.
+   - AMOLED theme uses pitch black `#000000`.
+
+6. **BATCH PLAYLISTS**:
+   - Batch downloads must use `enqueueBatchMediaDownloads` in `lib/features/extractor/presentation/utils/batch_download_helper.dart`.
+
+7. **TESTS & QUALITY**:
+   - Run `flutter test` and `dart analyze` before declaring any task complete. 0 issues permitted.
