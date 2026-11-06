@@ -30,6 +30,10 @@ android {
         versionName = flutter.versionName
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
@@ -50,5 +54,16 @@ flutter {
 }
 
 dependencies {
+    implementation("androidx.media3:media3-exoplayer:1.9.2")
+    implementation("androidx.media3:media3-session:1.9.2")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("androidx.test:core:1.7.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+}
+
+// AGP 9 host tests package Flutter's generated assets. Declare their producer
+// explicitly rather than relying on task execution order.
+tasks.matching { it.name == "packageDebugUnitTestForUnitTest" }.configureEach {
+    dependsOn("copyFlutterAssetsDebug")
 }
