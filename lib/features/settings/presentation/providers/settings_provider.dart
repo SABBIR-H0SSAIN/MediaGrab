@@ -1,3 +1,5 @@
+import 'dart:convert';
+import '../../../player/domain/playback_preferences.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,7 @@ import '../../../../core/constants/app_constants.dart';
 
 /// State representation for user preferences and app settings.
 class SettingsState extends Equatable {
+  final PlaybackPreferences playback;
   final ThemeMode themeMode;
   final bool amoledDark;
   final bool dynamicColors;
@@ -17,6 +20,7 @@ class SettingsState extends Equatable {
   final String downloadDirectory;
 
   const SettingsState({
+    this.playback = const PlaybackPreferences(),
     this.themeMode = ThemeMode.system,
     this.amoledDark = false,
     this.dynamicColors = true,
@@ -43,6 +47,7 @@ class SettingsState extends Equatable {
   }
 
   SettingsState copyWith({
+    PlaybackPreferences? playback,
     ThemeMode? themeMode,
     bool? amoledDark,
     bool? dynamicColors,
@@ -53,6 +58,7 @@ class SettingsState extends Equatable {
     String? downloadDirectory,
   }) {
     return SettingsState(
+      playback: playback ?? this.playback,
       themeMode: themeMode ?? this.themeMode,
       amoledDark: amoledDark ?? this.amoledDark,
       dynamicColors: dynamicColors ?? this.dynamicColors,
@@ -67,6 +73,7 @@ class SettingsState extends Equatable {
 
   @override
   List<Object?> get props => [
+    playback,
     themeMode,
     amoledDark,
     dynamicColors,
@@ -80,6 +87,8 @@ class SettingsState extends Equatable {
 
 /// State notifier managing [SettingsState] and persistence in [SharedPreferences].
 class SettingsNotifier extends StateNotifier<SettingsState> {
+  static const String keyPlayback = 'settings_playback_v1';
+  Future<void> _playbackWrites = Future<void>.value();
   static const String keyThemeMode = 'settings_theme_mode';
   static const String keyAmoledDark = 'settings_amoled_dark';
   static const String keyDynamicColors = 'settings_dynamic_colors';
@@ -92,14 +101,17 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const String keyDownloadDirectory = 'settings_download_directory';
 
   SharedPreferences? _prefs;
+  late final Future<void> ready;
+  bool _playbackTouched = false;
 
   SettingsNotifier({SharedPreferences? prefs})
     : _prefs = prefs,
       super(const SettingsState()) {
     if (_prefs != null) {
       _loadFromPrefs(_prefs!);
+      ready = Future<void>.value();
     } else {
-      _initAsync();
+      ready = _initAsync();
     }
   }
 
@@ -119,7 +131,17 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final downloadOverCellular = prefs.getBool(keyDownloadOverCellular) ?? true;
     final downloadDirectory = prefs.getString(keyDownloadDirectory) ?? '';
 
+    var playback = const PlaybackPreferences();
+    try {
+      final json = jsonDecode(prefs.getString(keyPlayback) ?? '{}');
+      if (json is Map<String, dynamic>) {
+        playback = PlaybackPreferences.fromJson(json);
+      }
+    } catch (_) {
+      // A corrupt playback preference must not prevent existing settings loading.
+    }
     state = SettingsState(
+      playback: _playbackTouched ? state.playback : playback,
       themeMode: themeMode,
       amoledDark: amoledDark,
       dynamicColors: dynamicColors,
@@ -197,9 +219,22 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     await prefs?.setString(keyDownloadDirectory, directory);
   }
 
+  Future<void> setPlayback(PlaybackPreferences preferences) {
+    _playbackTouched = true;
+    state = state.copyWith(playback: preferences);
+    final captured = jsonEncode(preferences.toJson());
+    _playbackWrites = _playbackWrites.then((_) async {
+      final prefs = await _getPrefs();
+      await prefs?.setString(keyPlayback, captured);
+    });
+    return _playbackWrites;
+  }
+
   Future<void> resetToDefaults() async {
     state = const SettingsState();
     final prefs = await _getPrefs();
+    await _playbackWrites;
+    await prefs?.remove(keyPlayback);
     await prefs?.remove(keyThemeMode);
     await prefs?.remove(keyAmoledDark);
     await prefs?.remove(keyDynamicColors);
@@ -226,7 +261,7 @@ final settingsProvider = StateNotifierProvider<SettingsNotifier, SettingsState>(
 final appVersionProvider = FutureProvider<String>((ref) async {
   try {
     final info = await PackageInfo.fromPlatform();
-    return 'v${info.version} (${info.buildNumber})';
+    return 'v${info.version}';
   } catch (_) {
     return 'v${AppConstants.appVersion}';
   }
