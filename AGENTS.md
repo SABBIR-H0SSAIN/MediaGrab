@@ -19,7 +19,7 @@ Manual Riverpod **2.6.1** providers; feature-first domain/data/presentation stru
 | media processing | **ffmpeg_kit_flutter_new_min 3.6.7**, retain constraint **`^3.6.7`** |
 | notifications | flutter_local_notifications 18.0.1 |
 | storage / settings | shared_preferences 2.5.6; path_provider 2.1.6; permission_handler 11.4.0 |
-| playback / safe external open | video_player 2.14.1; open_filex 4.7.0 |
+| playback / safe external open | Android Media3 ExoPlayer/session 1.9.2; video_player 2.14.1 portable/probe adapter; open_filex 4.7.0 |
 | routing | go_router 14.8.1 |
 
 Drift/sqlite and receive_sharing_intent remain declared/registered, but production persistence is JSON/SharedPreferences and no incoming-share Dart listener is wired. Do not invent a database or incoming-share workflow. Read the dependency boundaries in the known limitations before removing native integrations. Do not replace FFmpegKit with discontinued `ffmpeg_kit_flutter`/`ffmpeg_kit_flutter_min` Maven artifacts.
@@ -44,9 +44,9 @@ Paths below are relative to the repository; tests generally mirror `lib/`.
 - Adjacent services: `media_merge_plan.dart` (shared codec/timing/arguments), `media_merger.dart` (platform-neutral probing, copy/repair and cancellable FFmpeg sessions); `youtube_merge_plan.dart` retains its compatible API by delegating to the shared policy. `youtube_transfer.dart` owns ranges/continuity/deadlines; `youtube_media_validation.dart` the strict YouTube probe policy; `youtube_diagnostics.dart` bounded redacted logs; `download_registry.dart` completed records; `download_session_store.dart` restart checkpoints.
 - `lib/features/downloads/presentation/`: manager cellular/settings boundary, progress providers, Active/Completed screen and task tiles.
 - `lib/features/library/presentation/`: registry projections, filters/search/sort, persisted grid/list view, storage display. Compatibility `scanDirectories` delegates to registry refresh; it must never scan shared storage.
-- `lib/features/player/presentation/screens/video_player_screen.dart`: nullable active controller, async-safe initialization/disposal, lifecycle pause, speed/loop/aspect/seek/fullscreen/external-player controls.
+- `lib/features/player/`: app-scoped PlaybackManager and injectable backend, immutable queue/state/preferences, full player, docked mini-player and gesture controls. Android PlaybackService owns the sole native ExoPlayer, media session and monotonic sleep deadline; PlaybackBridge owns Flutter binding/texture/PiP. Route disposal minimizes, explicit Close stops. See `docs/playback.md`; preserve the safe nullable portable-controller cleanup.
 - `lib/features/settings/presentation/`: preference state and settings/theme UI. `lib/shared/widgets/`: navigation shell, reusable media cards/fields/feedback and native-style brand artwork.
-- `android/`: Gradle, plain FlutterActivity, manifests, FileProvider from plugins, launcher/native splash resources. `assets/icon/app_logo.png` is declared and referenced by README/icon generation; retain it.
+- `android/`: Gradle, FlutterActivity with playback lifecycle/PiP bridge, manifests, FileProvider from plugins, launcher/native splash resources. `assets/icon/app_logo.png` is declared and referenced by README/icon generation; retain it.
 - `tool/`: extraction/transfer/host-matrix/device/decode/merge probes, isolated Android builder, brand-icon generator. The host batch-sync benchmark is in `test/benchmarks/`. Never package a probe as the normal production entrypoint.
 
 ## End-to-end behavior and public boundaries
@@ -55,7 +55,7 @@ URL input → `detectPlatform` → `ExtractorFactory.getExtractorOrThrow` → me
 
 - Every playlist/multi-URL submission goes through **`enqueueBatchMediaDownloads`**. It accepts videos or exact PreparedDownload entries, resolves directories, sanitizes names, forwards companion audio, and reports actual per-item queued/error results. Never create fabricated stream URLs or duplicate task/directory logic in widgets.
 - Factory owns and closes extractors; injected clients retain their existing ownership semantics. Metadata/stream extraction FutureProviders are manual and cached by Riverpod. Batch checks have three workers, per-row revision guards and transient retry policy; timeout is a waiting deadline, not proof that the underlying extraction was canceled.
-- Download manager owns cellular checks, configured path and runtime concurrency preferences; engine owns execution and registry completion. UI owns navigation. Starting a download selects tab **0** and routes **`/downloads?tab=active`**. Recent "See all" selects **1** and routes **`/downloads?tab=completed`**. Completed video cards immediately push the in-app `/player` with URI-encoded filePath/title. Audio uses safe external opening.
+- Download manager owns cellular checks, configured path and runtime concurrency preferences; engine owns execution and registry completion. UI owns navigation. Starting a download selects tab **0** and routes **`/downloads?tab=active`**. Recent "See all" selects **1** and routes **`/downloads?tab=completed`**. Completed audio/video cards immediately push the in-app `/player` with URI-encoded filePath/title and an optional visible-list PlaybackQueue. Explicit external opening uses `openMediaFile`.
 
 ## Lifecycle, persistence and cancellation
 

@@ -5,6 +5,8 @@ Start with [AGENTS.md](../AGENTS.md), the repository's agent entry point. These 
 | Reference | When to read it |
 | --- | --- |
 | [Source map](source-map.md) | Locating the subsystem, production boundary, and existing tests for a change. |
+| [Player UX audit](player-ux-review.md) | Player interaction references, root causes and verification scope. |
+| [Playback](playback.md) | Modifying playback state, full/mini-player, Media3/PiP, sleep timers or playback preferences. |
 | [Testing and verification](testing.md) | Choosing checks and reporting what the evidence establishes. |
 | [Known limitations](known-limitations.md) | Changing transfers, persistence, extraction, playback, or Android background behavior. |
 | [Architecture](../ARCHITECTURE.md) | Understanding ownership, data flow, and extension points. |

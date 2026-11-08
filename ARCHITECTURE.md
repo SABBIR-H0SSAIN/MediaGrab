@@ -14,7 +14,7 @@ MediaGrab uses Flutter, manual Riverpod providers, and feature directories with 
 | `lib/features/extractor/` | Source adapters, metadata and stream entities, quality selection, and batch preparation. |
 | `lib/features/downloads/` | Settings/connectivity policy, FIFO execution, transport, media processing, output validation, and persistence. |
 | `lib/features/library/` | Search/filter/sort projections of registered completed media. |
-| `lib/features/player/` | In-app video playback, lifecycle pause, and controller cleanup. |
+| `lib/features/player/` | App-scoped local audio/video session, full/mini-player presentation, gestures, playback preferences and native service bridge. |
 | `lib/features/settings/` | Persisted preferences and appearance controls. |
 | `lib/core/` | Themes, brand artwork, file/URL/storage utilities, and download notifications. |
 | `lib/routing/`, `lib/shared/` | Routes, navigation shell, and reusable widgets. |
@@ -78,7 +78,7 @@ The library reads registered completed media and verifies files without scanning
 
 Output selection physically probes writability and falls back to app documents/MediaGrab when needed. A fallback must reserve a unique name against both files and tasks. External opening uses `openMediaFile` and Android FileProvider; titles use sanitized display names.
 
-The indexed navigation shell contains `/home`, `/downloads`, `/library`, and `/settings`. Details, batch preparation, and player routes sit outside it. New downloads select `/downloads?tab=active`; recent completed-media navigation selects `/downloads?tab=completed`. Completed videos use the in-app player with URI-encoded file path and title.
+The indexed navigation shell contains `/home`, `/downloads`, `/library`, and `/settings`. Details, batch preparation, and player routes sit outside it. New downloads select `/downloads?tab=active`; recent completed-media navigation selects `/downloads?tab=completed`. Completed audio and video use the in-app player with URI-encoded file path and title. Playback-only entry adapters snapshot the current visible list into an immutable queue. Explicit external opening still uses `openMediaFile`.
 
 Ordinary widgets use semantic theme colors. System/light/dark, wallpaper colors, and true-black AMOLED remain supported. Native Android resources own the single launch splash; `HeroBackground` and `HeroWavePalette` own the current Flutter brand artwork.
 
@@ -89,3 +89,25 @@ Ordinary widgets use semantic theme colors. System/light/dark, wallpaper colors,
 A notification alone does not promote the process. Background-start restrictions, dataSync time budgets, force-stop, and OEM process termination still apply. Plugin 18.0.1 lacks a timeout override; Dart/FFmpeg work has no guaranteed process-death continuation.
 
 Compile SDK is configured as 37. The maintenance build recorded minSdk 24 and targetSdk 36 from the merged manifest; recheck generated manifests after toolchain changes rather than assuming old values. Release currently uses debug signing. Exact toolchain versions, commands, and unresolved risks are maintained in [AGENTS.md](AGENTS.md).
+
+## Playback ownership
+
+`PlaybackManager` is app-scoped, independent of the `/player` route. Full player,
+mini-player and system controls share its session. Queue changes and Close use
+serialized operations and generation guards; rapid seeks coalesce against the
+last requested position. Closing releases playback; leaving the full player
+minimizes unless automatic mini-player is disabled.
+
+On Android, `PlaybackService` owns one Media3 ExoPlayer and an optional media
+session. `PlaybackBridge` binds Flutter commands/events and a SurfaceProducer
+texture without owning the player's lifetime. Its separate `mediaPlayback`
+foreground service/channel never substitutes for either download dataSync
+service. Audio-only/background playback disables video tracks and detaches the
+surface; foreground/PiP reattaches it to the same player. Sleep deadlines use
+native elapsed realtime. Playback preferences live under `settings_playback_v1`;
+completed records, download sessions and batch drafts retain their formats.
+
+The existing video_player package remains the portable/test adapter and is still
+used by diagnostic probes. There is no iOS runner; native iOS playback features
+are not delivered by the Android integration. See [Playback](docs/playback.md)
+for controls, preference policy and verification boundaries.

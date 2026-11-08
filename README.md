@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>A modern, powerful Android video and audio downloader built with Flutter 3, Material You, and Clean Architecture.</strong>
+  <strong>A modern, powerful Android video and audio downloader built with Flutter 3, Material UI, and Clean Architecture.</strong>
 </p>
 
 <p align="center">

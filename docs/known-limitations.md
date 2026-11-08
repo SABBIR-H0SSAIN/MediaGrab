@@ -9,7 +9,7 @@ These notes distinguish source behavior from reliability hypotheses. They are no
 | Generic HTTP 416 | [DownloadEngine._streamToFile](../lib/features/downloads/data/services/download_engine.dart) accepts a 416 when positive bytes exist and assigns that length as the total. This is weaker than the dedicated YouTube continuity/known-total policy. A future fix needs focused compatibility fixtures. |
 | Registry corruption | [DownloadRegistry._load](../lib/features/downloads/data/services/download_registry.dart) marks preferences loaded before decoding. Malformed primary data can suppress the documents backup, and malformed records can interrupt loading. Define salvage and deletion semantics before changing fallback. |
 | Connectivity handling | [DownloadManagerNotifier._handleConnectivityChange](../lib/features/downloads/presentation/providers/download_manager_provider.dart) pauses a snapshot of active jobs. Admission during those awaits and overlapping settings/network callbacks need a targeted race test; do not claim comprehensive cellular enforcement from the setting alone. |
-| Player initialization | [VideoPlayerScreen](../lib/features/player/presentation/screens/video_player_screen.dart) plays after async initialization when mounted, while lifecycle events separately pause the controller. Whether backgrounding during initialization permits later autoplay needs a delayed-initialization regression. |
+| Playback platforms and lifecycle | Android playback is owned by a separate Media3 service; Flutter route disposal does not stop its session. Generation guards cover late loads/events. Host tests do not establish real decoder, PiP, notification, interruption, screen-off or OEM behavior; there is no iOS runner. See [playback boundaries](playback.md). |
 | Batch timeout | [BatchPreparationController](../lib/features/extractor/presentation/providers/batch_preparation_provider.dart) uses waiting deadlines and revision guards. A timeout does not establish cancellation of the underlying extraction operation. Closing a shared extractor may affect other rows. |
 
 ## Boundaries requiring separate evidence
@@ -32,3 +32,22 @@ The Library is registry-backed and does not scan arbitrary shared storage. Strea
 [MediaMergePlan.audioCodecs](../lib/features/downloads/data/services/media_merge_plan.dart) permits MP4 AAC copy first only when valid input probes show start difference at most 50 ms and positive-duration difference at most 250 ms. Missing, invalid, or misaligned timing keeps resampling first. WebM uses copy/Opus. Preserve fallback and final validation, and never apply an audio filter with stream copy.
 
 Shared processing does not make generic validation equivalent to strict YouTube validation. Keep exact selected format, required tracks, duration policy, and packet-read checks where implemented. Diagnose failures through the current policy rather than relaxing checks to produce a completed status.
+
+## Playback-specific boundaries
+
+- Android PiP requires API 26+, device capability and system permission. Its
+  action placement and media-notification layouts are controlled by Android.
+- Background playback needs the separate mediaPlayback foreground service and
+  system media notification. Turning notification controls off is available only
+  with background playback disabled. Force-stop and process termination do not
+  resume automatically; preference persistence is not playback-job persistence.
+- Media3 uses platform decoders. An unsupported or damaged local file produces an
+  error and preserves the external-player action; no conversion or network
+  fallback is attempted. Artwork is local/cached with a placeholder fallback.
+- A running service retains its native sleep deadline through Flutter/activity
+  recreation, including pause and queue changes. Full process termination loses
+  the active timer/session and stops playback. Timers use elapsed time rather
+  than clock time; no exact-alarm permission is requested.
+- Surface reattachment, real call/headset interruptions, screen-off playback,
+  30-transition memory profiling and 60-minute playback require device checks.
+  Robolectric/service tests do not prove hardware decoding or battery savings.
