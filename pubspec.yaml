@@ -66,6 +66,8 @@ dependencies:
   ffmpeg_kit_flutter_new_min: ^3.6.7
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0

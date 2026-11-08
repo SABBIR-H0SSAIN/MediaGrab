@@ -64,6 +64,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         if (mounted &&
             platform != PlatformType.unknown &&
             text != _lastClipboardUrl) {
+          final currentInput = ref.read(urlInputProvider).trim();
+          // A newly copied link may refresh an earlier automatic paste, but
+          // returning to the app must never replace the user's typed draft.
+          if (currentInput.isNotEmpty && currentInput != _lastClipboardUrl) {
+            return;
+          }
           _lastClipboardUrl = text;
           ref.read(urlInputProvider.notifier).state = text;
         }

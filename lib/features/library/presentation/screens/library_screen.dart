@@ -1,6 +1,7 @@
+import '../../../player/domain/playback_state.dart';
+import '../../../player/presentation/utils/playback_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../shared/widgets/completed_media_tile.dart';
 import '../../../../core/utils/file_utils.dart';
@@ -64,21 +65,18 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   void _handleOpenMedia(BuildContext context, LibraryMediaItem item) {
-    final isVideo =
-        item.fileType != FileType.audio &&
-        (item.fileType == FileType.video ||
-            getFileType(item.filePath) == FileType.video);
-
-    if (isVideo) {
-      context.push(
-        Uri(
-          path: '/player',
-          queryParameters: {'filePath': item.filePath, 'title': item.title},
-        ).toString(),
-      );
-    } else {
-      openMediaFile(item.filePath);
-    }
+    PlaybackItem toPlayback(LibraryMediaItem media) => PlaybackItem(
+      id: media.id,
+      filePath: media.filePath,
+      title: media.title,
+      isAudio: media.fileType == FileType.audio,
+      artworkPath: media.thumbnailPath,
+    );
+    openLocalPlayback(
+      context,
+      toPlayback(item),
+      ref.read(filteredLibraryProvider).map(toPlayback),
+    );
   }
 
   Future<void> _deleteMedia(

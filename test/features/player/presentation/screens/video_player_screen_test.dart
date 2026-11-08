@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mediagrab/core/theme/app_theme.dart';
 import 'package:mediagrab/features/player/presentation/screens/video_player_screen.dart';
 import 'package:mediagrab/routing/app_router.dart';
@@ -142,6 +143,7 @@ class FakeVideoPlayerController extends ValueNotifier<VideoPlayerValue>
 
 void main() {
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     VideoPlayerPlatform.instance = FakeVideoPlayerPlatform();
   });
 
@@ -196,8 +198,26 @@ void main() {
 
       expect(openedPath, '/non/existent/path/test.mp4');
 
-      // Tap top bar external icon button as well
+      // External opening is kept in the playback settings menu.
       openedPath = null;
+      await tester.tap(find.byTooltip('Playback settings'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('video_player_external_button')),
+        200,
+        scrollable:
+            find
+                .descendant(
+                  of: find.byType(BottomSheet),
+                  matching: find.byType(Scrollable),
+                )
+                .first,
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('video_player_external_button')),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('video_player_external_button')));
       await tester.pump();
 
@@ -257,6 +277,24 @@ void main() {
         expect(controller.value.isPlaying, isFalse);
 
         // Tapping top bar external button triggers callback
+        await tester.tap(find.byTooltip('Playback settings'));
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('video_player_external_button')),
+          200,
+          scrollable:
+              find
+                  .descendant(
+                    of: find.byType(BottomSheet),
+                    matching: find.byType(Scrollable),
+                  )
+                  .first,
+        );
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(
+          find.byKey(const Key('video_player_external_button')),
+        );
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('video_player_external_button')));
         await tester.pump();
         expect(externalOpenedPath, '/test/path/sample.mp4');
@@ -284,7 +322,9 @@ void main() {
       await tester.pump();
 
       // Initially controls are visible
-      final animatedOpacityFinder = find.byType(AnimatedOpacity);
+      final animatedOpacityFinder = find.byKey(
+        const Key('player_controls_opacity'),
+      );
       expect(animatedOpacityFinder, findsOneWidget);
       AnimatedOpacity opacityWidget = tester.widget(animatedOpacityFinder);
       expect(opacityWidget.opacity, 1.0);
@@ -301,6 +341,10 @@ void main() {
     });
 
     testWidgets('navigating back via back button pops screen', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       final controller = FakeVideoPlayerController();
       bool popped = false;
 
@@ -387,7 +431,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       AnimatedOpacity opacityWidget = tester.widget(
-        find.byType(AnimatedOpacity),
+        find.byKey(const Key('player_controls_opacity')),
       );
       expect(opacityWidget.opacity, 0.0);
 
@@ -396,7 +440,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      opacityWidget = tester.widget(find.byType(AnimatedOpacity));
+      opacityWidget = tester.widget(
+        find.byKey(const Key('player_controls_opacity')),
+      );
       expect(opacityWidget.opacity, 1.0);
 
       // Drag scrub slider
@@ -410,7 +456,7 @@ void main() {
     });
 
     testWidgets(
-      'rewind and forward 10s buttons seek controller relative time',
+      'left and right double taps seek without visible skip buttons',
       (tester) async {
         final controller = FakeVideoPlayerController(
           initialValue: const VideoPlayerValue(
@@ -431,14 +477,16 @@ void main() {
         );
         await tester.pump();
 
-        // Tap rewind 10s
-        await tester.tap(find.byIcon(Icons.replay_10_rounded));
-        await tester.pump();
+        await tester.tapAt(const Offset(100, 200));
+        await tester.pump(const Duration(milliseconds: 70));
+        await tester.tapAt(const Offset(100, 200));
+        await tester.pump(const Duration(milliseconds: 100));
         expect(controller.value.position, const Duration(seconds: 20));
 
-        // Tap forward 10s
-        await tester.tap(find.byIcon(Icons.forward_10_rounded));
-        await tester.pump();
+        await tester.tapAt(const Offset(700, 200));
+        await tester.pump(const Duration(milliseconds: 70));
+        await tester.tapAt(const Offset(700, 200));
+        await tester.pump(const Duration(milliseconds: 100));
         expect(controller.value.position, const Duration(seconds: 30));
 
         // Unmount
@@ -512,11 +560,19 @@ void main() {
             matching: find.byType(Scrollable),
           );
           await tester.scrollUntilVisible(
-            find.byType(Switch),
+            find.descendant(
+              of: find.widgetWithText(SwitchListTile, 'Loop video'),
+              matching: find.byType(Switch),
+            ),
             80,
             scrollable: scrollable,
           );
-          await tester.tap(find.byType(Switch));
+          await tester.tap(
+            find.descendant(
+              of: find.widgetWithText(SwitchListTile, 'Loop video'),
+              matching: find.byType(Switch),
+            ),
+          );
           await tester.pumpAndSettle();
           expect(controller.value.isLooping, isTrue);
           await tester.scrollUntilVisible(
@@ -561,7 +617,7 @@ void main() {
       await tester.pump();
 
       // Tap settings gear
-      await tester.tap(find.byIcon(Icons.settings_rounded));
+      await tester.tap(find.byTooltip('Playback settings'));
       await tester.pumpAndSettle();
 
       expect(find.text('Playback Settings'), findsOneWidget);
@@ -569,7 +625,12 @@ void main() {
       expect(find.text('Loop video'), findsOneWidget);
 
       // Tap loop switch
-      await tester.tap(find.byType(Switch));
+      await tester.tap(
+        find.descendant(
+          of: find.widgetWithText(SwitchListTile, 'Loop video'),
+          matching: find.byType(Switch),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(controller.value.isLooping, isTrue);
 
@@ -596,7 +657,21 @@ void main() {
         await tester.pump();
 
         // Tap aspect ratio button
-        await tester.tap(find.byIcon(Icons.aspect_ratio_rounded));
+        await tester.tap(find.byTooltip('Playback settings'));
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(
+          find.text('Aspect ratio (Fit to screen)'),
+          200,
+          scrollable:
+              find
+                  .descendant(
+                    of: find.byType(BottomSheet),
+                    matching: find.byType(Scrollable),
+                  )
+                  .first,
+        );
+        await tester.tap(find.text('Aspect ratio (Fit to screen)'));
+        await tester.pumpAndSettle();
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 

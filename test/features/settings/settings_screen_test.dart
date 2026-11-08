@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,7 +53,7 @@ void main() {
     });
   }
 
-  testWidgets('SettingsScreen renders AppBar and all four sections', (
+  testWidgets('SettingsScreen renders AppBar and all five sections', (
     tester,
   ) async {
     setTestViewport(tester);
@@ -63,9 +64,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Settings'), findsOneWidget);
-    expect(find.byType(SettingsSection), findsNWidgets(4));
+    expect(find.byType(SettingsSection), findsNWidgets(5));
     expect(find.text('Appearance'), findsOneWidget);
     expect(find.text('Download'), findsOneWidget);
+    expect(find.text('Playback'), findsOneWidget);
+    expect(find.text('Playback preferences'), findsOneWidget);
     expect(find.text('About'), findsOneWidget);
   });
 
@@ -358,17 +361,26 @@ void main() {
     tester,
   ) async {
     setTestViewport(tester);
-    final container = ProviderContainer(
-      overrides: [appVersionProvider.overrideWith((ref) => 'v1.0.0 (1)')],
+    PackageInfo.setMockInitialValues(
+      appName: 'MediaGrab',
+      packageName: 'com.mediagrab.mediagrab',
+      version: '1.0.0',
+      buildNumber: '1',
+      buildSignature: '',
     );
+    final container = ProviderContainer();
     addTearDown(container.dispose);
 
     await tester.pumpWidget(buildSettingsScreen(container));
     await tester.pumpAndSettle();
 
     expect(find.text('App version'), findsOneWidget);
-    expect(find.text('v1.0.0 (1)'), findsOneWidget);
+    expect(find.text('v1.0.0'), findsOneWidget);
 
+    expect(
+      SettingsScreen.githubRepoUrl,
+      'https://github.com/SABBIR-H0SSAIN/MediaGrab',
+    );
     // Tap GitHub tile (does not throw)
     expect(find.text('GitHub'), findsOneWidget);
     await tester.tap(find.text('GitHub'));

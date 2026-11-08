@@ -1,3 +1,4 @@
+import '../../../player/presentation/widgets/playback_settings_section.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,8 @@ import '../widgets/theme_selector.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  static const String githubRepoUrl = 'https://github.com/sabbir/mediagrab';
+  static const String githubRepoUrl =
+      'https://github.com/SABBIR-H0SSAIN/MediaGrab';
 
   void _showVideoQualityDialog(
     BuildContext context,
@@ -272,6 +274,8 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+
+          const PlaybackSettingsSection(),
 
           // Download Section
           SettingsSection(

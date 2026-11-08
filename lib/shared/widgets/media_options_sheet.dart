@@ -7,10 +7,12 @@ class MediaOptionsSheet extends StatelessWidget {
     super.key,
     required this.title,
     required this.children,
+    this.showCloseButton = true,
   });
 
   final String title;
   final List<Widget> children;
+  final bool showCloseButton;
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -35,11 +37,12 @@ class MediaOptionsSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Close $title',
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
-                ),
+                if (showCloseButton)
+                  IconButton(
+                    tooltip: 'Close $title',
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
               ],
             ),
           ),

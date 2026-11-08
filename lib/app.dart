@@ -1,3 +1,4 @@
+import 'features/player/presentation/widgets/mini_player.dart';
 import 'dart:async';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
@@ -55,7 +56,10 @@ class MediaGrabApp extends ConsumerWidget {
                     );
                   }
                 },
-                child: child ?? const SizedBox.shrink(),
+                child: ProviderScope(
+                  overrides: [playbackHostRouterOverride(router)],
+                  child: PlaybackHost(child: child ?? const SizedBox.shrink()),
+                ),
               ),
         );
       },

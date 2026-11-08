@@ -146,6 +146,21 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(container.read(urlInputProvider), 'editing another link');
+        mockClipboardText = 'https://www.youtube.com/watch?v=aqz-KE-bpKQ';
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pumpAndSettle();
+        expect(container.read(urlInputProvider), 'editing another link');
+        // Clearing the draft makes the newly copied link eligible again.
+        container.read(urlInputProvider.notifier).state = '';
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pumpAndSettle();
+        expect(container.read(urlInputProvider), mockClipboardText);
+        container.read(urlInputProvider.notifier).state =
+            'editing another link';
         mockClipboardText = 'not a supported video link';
         tester.binding.handleAppLifecycleStateChanged(
           AppLifecycleState.resumed,

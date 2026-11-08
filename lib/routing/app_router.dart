@@ -1,3 +1,6 @@
+import 'package:flutter/widgets.dart';
+import '../features/player/domain/playback_state.dart';
+import '../features/player/presentation/widgets/mini_player.dart';
 import '../features/extractor/presentation/screens/batch_download_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,7 +18,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/batch-download',
-        builder: (context, state) => const BatchDownloadScreen(),
+        builder:
+            (context, state) =>
+                const PlaybackPageFrame(child: BatchDownloadScreen()),
       ),
       GoRoute(
         path: '/media-info',
@@ -23,15 +28,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final url =
               state.uri.queryParameters['url'] ??
               (state.extra as String? ?? '');
-          return MediaInfoScreen(url: url);
+          return PlaybackPageFrame(child: MediaInfoScreen(url: url));
         },
       ),
       GoRoute(
         path: '/player',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final filePath = state.uri.queryParameters['filePath'] ?? '';
           final title = state.uri.queryParameters['title'] ?? 'Video Player';
-          return VideoPlayerScreen(filePath: filePath, title: title);
+          return CustomTransitionPage<void>(
+            key: state.pageKey,
+            opaque: false,
+            transitionDuration: const Duration(milliseconds: 220),
+            reverseTransitionDuration: Duration.zero,
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) =>
+                    FadeTransition(opacity: animation, child: child),
+            child: VideoPlayerScreen(
+              filePath: filePath,
+              title: title,
+              queue:
+                  state.extra is PlaybackQueue
+                      ? state.extra as PlaybackQueue
+                      : null,
+            ),
+          );
         },
       ),
       StatefulShellRoute.indexedStack(

@@ -1,9 +1,9 @@
+import '../../../player/presentation/utils/playback_navigation.dart';
 import '../../../../shared/widgets/brand_artwork.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/utils/file_utils.dart';
 import '../../../../core/utils/url_parser.dart';
 import '../../../downloads/domain/entities/download_task.dart';
 import '../../../downloads/domain/enums/download_status.dart';
@@ -137,7 +137,7 @@ class RecentDownloadsSection extends ConsumerWidget {
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final task = tasks[index];
-          return _buildDownloadCard(context, theme, ref, task);
+          return _buildDownloadCard(context, theme, ref, task, tasks);
         },
       ),
     );
@@ -148,6 +148,7 @@ class RecentDownloadsSection extends ConsumerWidget {
     ThemeData theme,
     WidgetRef ref,
     DownloadTask task,
+    List<DownloadTask> visibleTasks,
   ) {
     final qualityLabel = task.selectedStream.qualityLabel;
     final platform = task.mediaInfo.platform;
@@ -171,21 +172,14 @@ class RecentDownloadsSection extends ConsumerWidget {
           }
           final filePath = task.filePath;
           if (filePath != null && task.status == DownloadStatus.completed) {
-            final isVideo = !task.selectedStream.isAudioOnly;
-            if (isVideo) {
-              final uri = Uri(
-                path: '/player',
-                queryParameters: {
-                  'filePath': filePath,
-                  'title': task.mediaInfo.title,
-                },
-              );
-              context.push(uri.toString());
-              return;
-            } else {
-              openMediaFile(filePath);
-              return;
-            }
+            openLocalPlayback(
+              context,
+              playbackItemFromTask(task),
+              visibleTasks
+                  .where((t) => t.status == DownloadStatus.completed)
+                  .map(playbackItemFromTask),
+            );
+            return;
           }
           if (GoRouter.maybeOf(context) != null) {
             ref.read(downloadsSelectedTabProvider.notifier).state = 1;

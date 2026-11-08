@@ -158,7 +158,14 @@ void main() {
 
       expect(find.byType(DownloadTile), findsOneWidget);
       expect(find.byTooltip('Play'), findsNothing);
-      expect(find.text('1'), findsWidgets); // Completed badge count
+      expect(find.text('1'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.widgetWithText(Tab, 'Completed'),
+          matching: find.byType(Badge),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets(

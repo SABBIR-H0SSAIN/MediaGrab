@@ -1,7 +1,7 @@
+import '../../../player/presentation/utils/playback_navigation.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -108,16 +108,13 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen>
     final filePath = task.filePath;
     if (filePath == null) return;
 
-    final isVideo = !task.selectedStream.isAudioOnly;
-    if (isVideo) {
-      final uri = Uri(
-        path: '/player',
-        queryParameters: {'filePath': filePath, 'title': task.mediaInfo.title},
-      );
-      context.push(uri.toString());
-    } else {
-      await _openExternal(context, filePath);
-    }
+    openLocalPlayback(
+      context,
+      playbackItemFromTask(task),
+      _filterAndSort(
+        ref.read(completedDownloadsProvider),
+      ).map(playbackItemFromTask),
+    );
   }
 
   Future<void> _openExternal(BuildContext context, String filePath) async {
@@ -471,7 +468,6 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen>
     final filteredActive = _filterAndSort(activeTasks);
     final filteredCompleted = _filterAndSort(completedTasks);
     final activeCount = activeTasks.length;
-    final completedCount = completedTasks.length;
     final notifier = ref.read(downloadManagerProvider.notifier);
     final theme = Theme.of(context);
 
@@ -543,18 +539,7 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen>
                 ),
               ),
             ),
-            Tab(
-              child: Badge.count(
-                count: completedCount,
-                isLabelVisible: completedCount > 0,
-                backgroundColor: theme.colorScheme.primary,
-                textColor: theme.colorScheme.onPrimary,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('Completed'),
-                ),
-              ),
-            ),
+            const Tab(text: 'Completed'),
           ],
         ),
       ),
